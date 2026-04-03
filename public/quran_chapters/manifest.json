@@ -1,7 +1,7 @@
 {
   "id": "https://quranf.netlify.app/",
-  "name": "القرآن الكريم",
-  "short_name": "القرآن",
+  "name": "Quran",
+  "short_name": "Quran",
   "description": "قراءة وبحث في القرآن الكريم",
   "start_url": "./index.html",
   "scope": "./",

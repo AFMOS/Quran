@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect fill="#0d7377" width="192" height="192" rx="24"/><text x="96" y="125" font-size="90" text-anchor="middle" fill="white" font-family="serif">�</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Quran">
+  <rect width="192" height="192" rx="40" fill="#0d7377"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 52c-22.6 0-41 18.4-41 41s18.4 41 41 41c12 0 22.9-5.2 30.5-13.4" stroke="#fff" stroke-width="14"/>
+    <path d="M122 118l26 34" stroke="#fff" stroke-width="14"/>
+    <path d="M96 78c-10 0-18 8-18 18s8 18 18 18" stroke="#b2dfdb" stroke-width="5" opacity="0.95"/>
+  </g>
+</svg>

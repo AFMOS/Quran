@@ -301,10 +301,9 @@ function wirePageModeSettings() {
   }
 }
 
-/** Horizontal finger-following drag — whole page sheet moves with the finger (original flip feel).
- *  Rubber-band at first/last page; navigate or spring back on release.
+/** Three-in-one strip [next | current | prev]: drag shows real adjacent page text (no peer underlay).
  *  onSwipeLeft = finger moved left (negative dx) → previous page; onSwipeRight → next page. */
-function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
+function bindPageSwipe(flipEl, stripEl, pageNum, onSwipeLeft, onSwipeRight) {
   const THRESHOLD = 72;
   const RUBBER = 0.28;
   const MAX_PULL = 48;
@@ -314,8 +313,20 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
   let panning = false;
   let decided = false;
 
-  function applyTx(x) {
-    flipEl.style.transform = x ? `translateX(${x}px)` : '';
+  function panelW() {
+    return flipEl.clientWidth || 0;
+  }
+
+  function baseOffset() {
+    return -panelW();
+  }
+
+  function applyStripPx(px) {
+    stripEl.style.transform = `translate3d(${px}px,0,0)`;
+  }
+
+  function snapCenter() {
+    applyStripPx(baseOffset());
   }
 
   flipEl.addEventListener(
@@ -327,7 +338,8 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
       lastX = 0;
       panning = false;
       decided = false;
-      flipEl.style.transition = 'none';
+      stripEl.style.transition = 'none';
+      snapCenter();
     },
     { passive: true, capture: true }
   );
@@ -356,36 +368,52 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
         tx = Math.max(-MAX_PULL, tx * RUBBER);
       }
       lastX = tx;
-      applyTx(tx);
+      const w = panelW();
+      if (w > 0) applyStripPx(-w + tx);
     },
     { passive: false, capture: true }
   );
 
   function endGesture() {
+    const w = panelW();
     if (!decided || !panning) {
-      applyTx(0);
-      flipEl.style.transition = '';
+      stripEl.style.transition = '';
+      if (w > 0) snapCenter();
       return;
     }
-    if (lastX <= -THRESHOLD && pageNum > 1) {
-      onSwipeLeft();
-      return;
-    }
-    if (lastX >= THRESHOLD && pageNum < 604) {
-      onSwipeRight();
-      return;
-    }
-    flipEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
-    lastX = 0;
-    applyTx(0);
-    const done = () => {
-      flipEl.removeEventListener('transitionend', done);
-      clearTimeout(fallback);
-      flipEl.style.transition = '';
-      applyTx(0);
+    const finishNav = (fn) => {
+      const done = () => {
+        stripEl.removeEventListener('transitionend', done);
+        clearTimeout(fallback);
+        stripEl.style.transition = '';
+        fn();
+      };
+      const fallback = setTimeout(done, 360);
+      stripEl.addEventListener('transitionend', done);
     };
-    const fallback = setTimeout(done, 320);
-    flipEl.addEventListener('transitionend', done);
+
+    if (lastX <= -THRESHOLD && pageNum > 1 && w > 0) {
+      stripEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+      requestAnimationFrame(() => applyStripPx(-2 * w));
+      finishNav(onSwipeLeft);
+      return;
+    }
+    if (lastX >= THRESHOLD && pageNum < 604 && w > 0) {
+      stripEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+      requestAnimationFrame(() => applyStripPx(0));
+      finishNav(onSwipeRight);
+      return;
+    }
+    stripEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+    lastX = 0;
+    if (w > 0) snapCenter();
+    const settle = () => {
+      stripEl.removeEventListener('transitionend', settle);
+      clearTimeout(fb);
+      stripEl.style.transition = '';
+    };
+    const fb = setTimeout(settle, 320);
+    stripEl.addEventListener('transitionend', settle);
   }
 
   flipEl.addEventListener('touchend', endGesture, { passive: true, capture: true });
@@ -457,7 +485,17 @@ function renderPageView(pageNum) {
         </div>
       </div>
       <div class="qc-page-flip" id="qc-page-flip">
-        <div class="qc-wrap qc-wrap-pending" align="center" id="qc-main"></div>
+        <div class="qc-page-strip" id="qc-page-strip">
+          <div class="qc-page-panel">
+            <div class="qc-wrap" align="center" id="qc-panel-next-inner"></div>
+          </div>
+          <div class="qc-page-panel">
+            <div class="qc-wrap qc-wrap-pending" align="center" id="qc-main"></div>
+          </div>
+          <div class="qc-page-panel">
+            <div class="qc-wrap" align="center" id="qc-panel-prev-inner"></div>
+          </div>
+        </div>
       </div>
     </div>
   `)
@@ -497,9 +535,34 @@ function renderPageView(pageNum) {
       });
       mainEl.classList.remove('qc-wrap-pending');
       mainEl.innerHTML = buildPageMainInnerHtml(pageNum);
+      const nextInner = document.getElementById('qc-panel-next-inner');
+      const prevInner = document.getElementById('qc-panel-prev-inner');
+      if (nextInner) {
+        nextInner.innerHTML =
+          pageNum < 604 ? buildPageMainInnerHtml(pageNum + 1) : '<div class="qc-panel-edge"></div>';
+      }
+      if (prevInner) {
+        prevInner.innerHTML =
+          pageNum > 1 ? buildPageMainInnerHtml(pageNum - 1) : '<div class="qc-panel-edge"></div>';
+      }
 
       const flipEl = document.getElementById('qc-page-flip');
-      bindPageSwipe(flipEl, pageNum, prev, next);
+      const stripEl = document.getElementById('qc-page-strip');
+      function syncStripCenter() {
+        if (!flipEl || !stripEl) return;
+        stripEl.style.transition = 'none';
+        const w = flipEl.clientWidth;
+        if (w > 0) stripEl.style.transform = `translate3d(${-w}px,0,0)`;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            stripEl.style.transition = '';
+            const w2 = flipEl.clientWidth;
+            if (w2 > 0 && w2 !== w) stripEl.style.transform = `translate3d(${-w2}px,0,0)`;
+          });
+        });
+      }
+      syncStripCenter();
+      if (flipEl && stripEl) bindPageSwipe(flipEl, stripEl, pageNum, prev, next);
       const firstLi = mainEl.querySelector('.qc-li');
       if (isQuranDebug()) {
         quranDebug('spa.pageMode.layout', {

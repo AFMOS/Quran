@@ -1,12 +1,11 @@
-# Verifies `npm run build` on every push / PR (static site + generated quran-debug).
+# Verifies `npm run build` on PRs (before merge). Pushes use the Android workflow, which already runs `npm run build`.
 
 name: Web build
 
 on:
-  push:
-    branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
 concurrency:
   group: web-build-${{ github.workflow }}-${{ github.ref }}

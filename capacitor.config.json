@@ -1,6 +1,6 @@
 {
   "appId": "net.quranf.app",
-  "appName": "القرآن",
+  "appName": "Quran",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

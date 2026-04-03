@@ -338,6 +338,7 @@ body.reader-night .qc-cache-track {
   background: #3d3d5c;
 }
 
+/* LTR shell so the 3-panel strip order matches translateX (html is rtl — flex row would mirror panels). */
 .qc-page-flip {
   position: relative;
   overflow: hidden;
@@ -348,7 +349,27 @@ body.reader-night .qc-cache-track {
   display: flex;
   flex-direction: column;
   touch-action: pan-x pan-y;
+  direction: ltr;
+}
+
+.qc-page-strip {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+  width: 300%;
   will-change: transform;
+  /* Fallback before JS sets pixel offset */
+  transform: translate3d(calc(-100% / 3), 0, 0);
+}
+
+.qc-page-panel {
+  flex: 0 0 calc(100% / 3);
+  box-sizing: border-box;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .qc-wrap {
@@ -359,6 +380,10 @@ body.reader-night .qc-cache-track {
   max-width: 100%;
   margin: 0 auto;
   user-select: text;
+}
+
+.qc-panel-edge {
+  min-height: 45vh;
 }
 body.reader-sepia.qc-page-mode .qc-wrap {
   background: #f5f0e6;
