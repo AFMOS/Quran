@@ -221,6 +221,7 @@ function wirePageModeSettings() {
       'icon-512.png',
       'reference_quran.json',
       'quran_page_map.json',
+      'search_data.json',
     ];
     for (let i = 1; i <= 114; i++) precacheUrls.push(`ch_${String(i).padStart(3, '0')}.html`);
 
@@ -446,7 +447,7 @@ function renderPageView(pageNum) {
           const fromRef = verseText(s, v);
           const txt = escapeHtml(fromRef || '…');
           const num = toArabicIndic(v);
-          return `<li class="qc-li" value="${v}" dir="rtl"><span class="qc-aya-marker" aria-hidden="true">${num}.</span><p align="right" class="qc-ayat"><span class="qc-ayat-inner">${txt}</span></p></li>`;
+          return `<li class="qc-li" value="${v}" dir="rtl"><span class="qc-aya-marker" aria-hidden="true">${num}.</span><p class="qc-ayat" dir="rtl"><span class="qc-ayat-inner">${txt}</span></p></li>`;
         })
         .join('');
 

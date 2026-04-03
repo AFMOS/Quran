@@ -1,20 +1,18 @@
-import json
+"""
+Legacy: search used to inline ~1.5MB of JSON into search.html.
+Search now loads search_data.json via fetch — keep HTML small and cacheable.
+
+To refresh verse index only, run: python scripts/build_search.py
+"""
+
 import os
+import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 QC = os.path.join(ROOT, "public", "quran_chapters")
-
-with open(os.path.join(QC, "search_data.json"), "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-with open(os.path.join(QC, "search.html"), "r", encoding="utf-8") as f:
-    html = f.read()
-
-old = "fetch('search_data.json').then(r=>r.json()).then(d=>{\n  data = d;\n  document.getElementById('q').focus();\n});"
-new = "data = " + json.dumps(data, ensure_ascii=False) + ";\ndocument.getElementById('q').focus();"
-html = html.replace(old, new)
-
-with open(os.path.join(QC, "search.html"), "w", encoding="utf-8") as f:
-    f.write(html)
-
-print("Embedded data in search.html")
+data_path = os.path.join(QC, "search_data.json")
+if os.path.isfile(data_path):
+    print("search.html loads search_data.json at runtime; no embed needed.")
+else:
+    print("Missing search_data.json — run: python scripts/build_search.py", file=sys.stderr)
+    sys.exit(1)

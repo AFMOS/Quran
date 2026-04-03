@@ -265,7 +265,7 @@
   document.getElementById('r-dyslexia').onchange = save;
 
   var CACHE_NAME = 'quran-v27';
-  var precacheUrls = ['index.html', 'search.html', 'early-theme.js', 'reader.js', 'surah-grid.js', 'quran-debug.js', 'surah_start_page.js', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png'];
+  var precacheUrls = ['index.html', 'search.html', 'search_data.json', 'early-theme.js', 'reader.js', 'surah-grid.js', 'quran-debug.js', 'surah_start_page.js', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png'];
   for (var i = 1; i <= 114; i++) precacheUrls.push('ch_' + String(i).padStart(3, '0') + '.html');
   document.getElementById('r-cache-btn').onclick = function() {
     if (!('caches' in window)) return;

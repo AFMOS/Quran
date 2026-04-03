@@ -405,20 +405,37 @@ body.qc-page-mode .qc-ol {
 /* Match scroll mode: inline marker + inline verse (same as reader.js ol[dir=rtl] li p) */
 body.qc-page-mode .qc-li {
   display: block;
-  text-align: right;
   list-style: none;
+  width: 100%;
+  overflow: hidden;
 }
 body.qc-page-mode .qc-aya-marker {
+  float: right;
   display: inline;
   font-family: 'Traditional Arabic', 'Times New Roman', serif;
   font-weight: 400;
   unicode-bidi: isolate;
-  margin-inline-end: 0.2em;
+  margin-inline-start: 0.35em;
+  line-height: inherit;
 }
-body.qc-page-mode .qc-li p {
-  display: inline !important;
+body.qc-page-mode .qc-li p.qc-ayat {
+  display: block !important;
   margin: 0 !important;
+  text-align: justify;
+  text-align-last: right;
+  text-justify: inter-character;
   vertical-align: baseline;
+}
+body.qc-page-mode .qc-li::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+/* Dyslexia-friendly: keep ragged right edge (justify is harder to track). */
+body.reader-dyslexia.qc-page-mode .qc-li p.qc-ayat {
+  text-align: right;
+  text-align-last: right;
+  text-justify: auto;
 }
 body.reader-sepia.qc-page-mode .qc-aya-marker {
   color: #5c4b37 !important;
@@ -466,13 +483,17 @@ body.reader-night .qc-err {
     padding-right: 12px !important;
     padding-left: 8px !important;
   }
-  body.qc-page-mode .qc-ol li {
-    text-align: right;
-  }
-  body.qc-page-mode .qc-ol li p {
-    display: inline !important;
+  body.qc-page-mode .qc-ol li p.qc-ayat {
+    display: block !important;
     margin: 0 !important;
     padding: 0 !important;
+    text-align: justify;
+    text-align-last: right;
+    text-justify: inter-character;
+  }
+  body.reader-dyslexia.qc-page-mode .qc-ol li p.qc-ayat {
+    text-align: right;
+    text-justify: auto;
   }
   body.reader-dyslexia.qc-page-mode .qc-ol li {
     letter-spacing: 0.02em !important;
