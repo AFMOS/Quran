@@ -108,11 +108,23 @@
     html.quran-surah-scroll{scroll-padding-top:calc(48px + env(safe-area-inset-top,0px))}
     body.quran-top-toolbar{padding-top:calc(46px + env(safe-area-inset-top,0px))!important}
     @media (max-width:1024px){
-      body ol[dir="rtl"]{padding-right:12px!important;padding-left:8px!important}
+      /* RTL: markers sit on inline-start (physical right); need real gutter — 12px clipped Indic digits */
+      body ol[dir="rtl"]{
+        padding:0!important;
+        padding-inline-start:max(44px,2.6em)!important;
+        padding-inline-end:10px!important;
+        box-sizing:border-box!important;
+        list-style-position:outside!important;
+      }
       body ol[dir="rtl"] li{text-align:right}
       body ol[dir="rtl"] li p{display:inline!important;margin:0!important;padding:0!important}
-      body.reader-sepia ol li::marker{color:#5c4b37!important}
-      body.reader-night ol li::marker{color:#e8e6e3!important}
+      body.reader-sepia ol[dir="rtl"] li::marker{color:#5c4b37!important}
+      body.reader-night ol[dir="rtl"] li::marker{color:#e8e6e3!important}
+      body ol[dir="rtl"] li::marker{
+        font-size:1.05em!important;
+        font-weight:700!important;
+        unicode-bidi:isolate;
+      }
       body.reader-dyslexia ol li{letter-spacing:.02em!important;line-height:1.32!important}
       body.reader-size-s ol li{font-size:16px!important}
       body.reader-size-m ol li{font-size:18px!important}
