@@ -1,22 +1,17 @@
 # Build a debug APK in the cloud (no Android Studio on your PC).
 # After the run finishes: Actions → latest run → Artifacts → app-debug-apk
+#
+# `npm run build` is required here: Capacitor copies `dist/` into the Android app before Gradle runs.
 
 name: Build Android APK (debug)
+
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
   push:
     branches: [main, master]
-    paths:
-      - '.github/workflows/android-apk.yml'
-      - 'src/**'
-      - 'public/**'
-      - 'android/**'
-      - 'index.html'
-      - 'vite.config.js'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'capacitor.config.json'
 
 concurrency:
   group: android-apk-${{ github.ref }}
