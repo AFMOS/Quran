@@ -446,8 +446,7 @@ function renderPageView(pageNum) {
         .map(([s, v]) => {
           const fromRef = verseText(s, v);
           const txt = escapeHtml(fromRef || '…');
-          const num = toArabicIndic(v);
-          return `<li class="qc-li" value="${v}" dir="rtl"><span class="qc-aya-marker" aria-hidden="true">${num}.</span><p class="qc-ayat" dir="rtl"><span class="qc-ayat-inner">${txt}</span></p></li>`;
+          return `<li class="qc-li" value="${v}" dir="rtl"><p class="qc-ayat" dir="rtl"><span class="qc-ayat-inner">${txt}</span></p></li>`;
         })
         .join('');
 
@@ -470,10 +469,9 @@ function renderPageView(pageNum) {
       const flipEl = document.getElementById('qc-page-flip');
       bindPageSwipe(flipEl, pageNum, prev, next);
       const firstLi = mainEl.querySelector('.qc-li');
-      const firstMark = mainEl.querySelector('.qc-aya-marker');
       if (isQuranDebug()) {
         quranDebug('spa.pageMode.layout', {
-          firstMarkerText: firstMark ? firstMark.textContent : null,
+          firstLiValue: firstLi ? firstLi.getAttribute('value') : null,
           olPaddingRight: firstLi ? getComputedStyle(mainEl.querySelector('.qc-ol')).paddingRight : null,
         });
         if (firstLi) quranDebugDom('spa.pageMode.firstAyah', firstLi);
