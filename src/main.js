@@ -352,7 +352,7 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       decided = false;
       mainEl.style.transition = 'none';
     },
-    { passive: true }
+    { passive: true, capture: true }
   );
 
   flipEl.addEventListener(
@@ -381,7 +381,7 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       lastX = tx;
       applyTx(tx);
     },
-    { passive: false }
+    { passive: false, capture: true }
   );
 
   function endGesture() {
@@ -411,8 +411,8 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
     mainEl.addEventListener('transitionend', done);
   }
 
-  flipEl.addEventListener('touchend', endGesture, { passive: true });
-  flipEl.addEventListener('touchcancel', endGesture, { passive: true });
+  flipEl.addEventListener('touchend', endGesture, { passive: true, capture: true });
+  flipEl.addEventListener('touchcancel', endGesture, { passive: true, capture: true });
 }
 
 function pageModeHash(n) {
