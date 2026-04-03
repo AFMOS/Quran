@@ -131,6 +131,39 @@ function verseText(surah, verse) {
   return row ? row.text : null;
 }
 
+/** Full mushaf page body (title + ayat list). Requires pageMapData + refData loaded. */
+function buildPageMainInnerHtml(pageNum) {
+  if (!pageMapData || !pageMapData.pages[pageNum - 1]) return '';
+  const pairs = pageMapData.pages[pageNum - 1];
+  if (!pairs || pairs.length === 0) return '';
+  const segs = buildPageSegmentsFromPairs(pairs);
+  const titleParts = segs.map(
+    (g) => `${g.name} (${toArabicIndic(g.start)}–${toArabicIndic(g.end)})`
+  );
+  const titleLine = `صفحة ${toArabicIndic(pageNum)} — ${titleParts.join(' · ')}`;
+  const lis = pairs
+    .map(([s, v]) => {
+      const fromRef = verseText(s, v);
+      const txt = escapeHtml(fromRef || '…');
+      return `<li class="qc-li" value="${v}" dir="rtl"><p class="qc-ayat" dir="rtl"><span class="qc-ayat-inner">${txt}</span></p></li>`;
+    })
+    .join('');
+  return `
+          <table class="qc-title-table" width="100%" dir="rtl" cellpadding="0" cellspacing="0" align="center">
+            <tr>
+              <td bgcolor="#0DC895" width="100%">
+                <p align="center"><span class="qc-page-title-line">${titleLine}</span></p>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" dir="rtl" cellpadding="0" cellspacing="0" align="center">
+            <tr><td>
+              <ol dir="rtl" class="qc-ol">${lis}</ol>
+            </td></tr>
+          </table>
+        `;
+}
+
 function el(html) {
   const t = document.createElement('template');
   t.innerHTML = html.trim();
@@ -269,8 +302,9 @@ function wirePageModeSettings() {
 }
 
 /** Horizontal finger-following drag; rubber-band at first/last page; navigate or spring back on release.
- *  onSwipeLeft = finger moved left (negative dx) → previous page; onSwipeRight → next page (matches legacy bindSwipe). */
-function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
+ *  Peer layers show next/prev page in the gap while dragging (not blank).
+ *  onSwipeLeft = finger moved left (negative dx) → previous page; onSwipeRight → next page. */
+function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeLeft, onSwipeRight) {
   const THRESHOLD = 72;
   const RUBBER = 0.28;
   const MAX_PULL = 48;
@@ -280,8 +314,31 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
   let panning = false;
   let decided = false;
 
+  function widthFlip() {
+    return flipEl.clientWidth || 0;
+  }
+
   function applyTx(x) {
-    flipEl.style.transform = x ? `translateX(${x}px)` : '';
+    mainEl.style.transform = x ? `translateX(${x}px)` : '';
+    const W = widthFlip();
+    if (peerNextEl) {
+      if (x > 1 && pageNum < 604) {
+        peerNextEl.style.display = 'block';
+        peerNextEl.style.left = `${x - W}px`;
+      } else {
+        peerNextEl.style.display = 'none';
+        peerNextEl.style.left = '';
+      }
+    }
+    if (peerPrevEl) {
+      if (x < -1 && pageNum > 1) {
+        peerPrevEl.style.display = 'block';
+        peerPrevEl.style.left = `${W + x}px`;
+      } else {
+        peerPrevEl.style.display = 'none';
+        peerPrevEl.style.left = '';
+      }
+    }
   }
 
   flipEl.addEventListener(
@@ -293,7 +350,7 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
       lastX = 0;
       panning = false;
       decided = false;
-      flipEl.style.transition = 'none';
+      mainEl.style.transition = 'none';
     },
     { passive: true }
   );
@@ -330,7 +387,7 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
   function endGesture() {
     if (!decided || !panning) {
       applyTx(0);
-      flipEl.style.transition = '';
+      mainEl.style.transition = '';
       return;
     }
     if (lastX <= -THRESHOLD && pageNum > 1) {
@@ -341,17 +398,17 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
       onSwipeRight();
       return;
     }
-    flipEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+    mainEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
     lastX = 0;
     applyTx(0);
     const done = () => {
-      flipEl.removeEventListener('transitionend', done);
+      mainEl.removeEventListener('transitionend', done);
       clearTimeout(fallback);
-      flipEl.style.transition = '';
+      mainEl.style.transition = '';
       applyTx(0);
     };
     const fallback = setTimeout(done, 320);
-    flipEl.addEventListener('transitionend', done);
+    mainEl.addEventListener('transitionend', done);
   }
 
   flipEl.addEventListener('touchend', endGesture, { passive: true });
@@ -423,6 +480,8 @@ function renderPageView(pageNum) {
         </div>
       </div>
       <div class="qc-page-flip" id="qc-page-flip">
+        <div class="qc-page-peer qc-page-peer-next" id="qc-peer-next" aria-hidden="true"></div>
+        <div class="qc-page-peer qc-page-peer-prev" id="qc-peer-prev" aria-hidden="true"></div>
         <div class="qc-wrap qc-wrap-pending" align="center" id="qc-main"></div>
       </div>
     </div>
@@ -461,38 +520,24 @@ function renderPageView(pageNum) {
         refLoaded: !!refData,
         sample: pairs[0] ? { surah: pairs[0][0], v: pairs[0][1] } : null,
       });
-      const segs = buildPageSegmentsFromPairs(pairs);
-      const titleParts = segs.map(
-        (g) => `${g.name} (${toArabicIndic(g.start)}–${toArabicIndic(g.end)})`
-      );
-      const titleLine = `صفحة ${toArabicIndic(pageNum)} — ${titleParts.join(' · ')}`;
-
-      const lis = pairs
-        .map(([s, v]) => {
-          const fromRef = verseText(s, v);
-          const txt = escapeHtml(fromRef || '…');
-          return `<li class="qc-li" value="${v}" dir="rtl"><p class="qc-ayat" dir="rtl"><span class="qc-ayat-inner">${txt}</span></p></li>`;
-        })
-        .join('');
-
       mainEl.classList.remove('qc-wrap-pending');
-      mainEl.innerHTML = `
-          <table class="qc-title-table" width="100%" dir="rtl" cellpadding="0" cellspacing="0" align="center">
-            <tr>
-              <td bgcolor="#0DC895" width="100%">
-                <p align="center"><span class="qc-page-title-line">${titleLine}</span></p>
-              </td>
-            </tr>
-          </table>
-          <table width="100%" dir="rtl" cellpadding="0" cellspacing="0" align="center">
-            <tr><td>
-              <ol dir="rtl" class="qc-ol">${lis}</ol>
-            </td></tr>
-          </table>
-        `;
+      mainEl.innerHTML = buildPageMainInnerHtml(pageNum);
+
+      const peerNext = document.getElementById('qc-peer-next');
+      const peerPrev = document.getElementById('qc-peer-prev');
+      if (peerNext) {
+        peerNext.innerHTML = pageNum < 604 ? buildPageMainInnerHtml(pageNum + 1) : '';
+        peerNext.style.display = 'none';
+        peerNext.style.left = '';
+      }
+      if (peerPrev) {
+        peerPrev.innerHTML = pageNum > 1 ? buildPageMainInnerHtml(pageNum - 1) : '';
+        peerPrev.style.display = 'none';
+        peerPrev.style.left = '';
+      }
 
       const flipEl = document.getElementById('qc-page-flip');
-      bindPageSwipe(flipEl, pageNum, prev, next);
+      bindPageSwipe(flipEl, mainEl, peerPrev, peerNext, pageNum, prev, next);
       const firstLi = mainEl.querySelector('.qc-li');
       if (isQuranDebug()) {
         quranDebug('spa.pageMode.layout', {
