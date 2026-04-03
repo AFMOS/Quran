@@ -302,7 +302,7 @@ function wirePageModeSettings() {
 }
 
 /** Horizontal finger-following drag; rubber-band at first/last page; navigate or spring back on release.
- *  Peer layers show next/prev page in the gap while dragging (not blank).
+ *  Peer layers show next/prev in the gap (RTL-style: next enters from the right, prev from the left).
  *  onSwipeLeft = finger moved left (negative dx) → previous page; onSwipeRight → next page. */
 function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeLeft, onSwipeRight) {
   const THRESHOLD = 72;
@@ -318,13 +318,14 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
     return flipEl.clientWidth || 0;
   }
 
+  /** x = finger delta: right (positive) → next page peeks from the right; left (negative) → prev from the left. */
   function applyTx(x) {
-    mainEl.style.transform = x ? `translateX(${x}px)` : '';
+    mainEl.style.transform = x ? `translateX(${-x}px)` : '';
     const W = widthFlip();
     if (peerNextEl) {
       if (x > 1 && pageNum < 604) {
         peerNextEl.style.display = 'block';
-        peerNextEl.style.left = `${x - W}px`;
+        peerNextEl.style.left = `${W - x}px`;
       } else {
         peerNextEl.style.display = 'none';
         peerNextEl.style.left = '';
@@ -333,7 +334,7 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
     if (peerPrevEl) {
       if (x < -1 && pageNum > 1) {
         peerPrevEl.style.display = 'block';
-        peerPrevEl.style.left = `${W + x}px`;
+        peerPrevEl.style.left = `${x}px`;
       } else {
         peerPrevEl.style.display = 'none';
         peerPrevEl.style.left = '';
@@ -373,10 +374,10 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       let tx = dx;
       const atFirst = pageNum <= 1;
       const atLast = pageNum >= 604;
-      if (atFirst && tx > 0) {
-        tx = Math.min(MAX_PULL, tx * RUBBER);
-      } else if (atLast && tx < 0) {
+      if (atFirst && tx < 0) {
         tx = Math.max(-MAX_PULL, tx * RUBBER);
+      } else if (atLast && tx > 0) {
+        tx = Math.min(MAX_PULL, tx * RUBBER);
       }
       lastX = tx;
       applyTx(tx);
