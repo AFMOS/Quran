@@ -1,4 +1,7 @@
 /** Enable: ?debug=1 in URL or localStorage.setItem('quran_debug','1') */
+export const QURAN_DEBUG_HELP =
+  'Enable console reports: add ?debug=1 to the URL, or run: localStorage.setItem("quran_debug","1"); location.reload()';
+
 export function isQuranDebug() {
   try {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('quran_debug') === '1') return true;
@@ -31,9 +34,4 @@ export function quranDebugDom(label, el) {
     color: cs.color,
     bg: cs.backgroundColor,
   });
-}
-
-if (typeof window !== 'undefined') {
-  window.QURAN_DEBUG_HELP =
-    'Enable console reports: add ?debug=1 to the URL, or run: localStorage.setItem("quran_debug","1"); location.reload()';
 }

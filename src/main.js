@@ -1,5 +1,5 @@
 import './styles.css';
-import { isQuranDebug, quranDebug, quranDebugDom } from './quran-debug.js';
+import { isQuranDebug, quranDebug, quranDebugDom, QURAN_DEBUG_HELP } from './quran-debug.js';
 import { SURAH_NAMES_AR } from './surah-names.js';
 
 const REF_PATH = `${import.meta.env.BASE_URL}reference_quran.json`.replace(/\/+/g, '/');
@@ -9,7 +9,7 @@ if (isQuranDebug()) {
   quranDebug('spa.boot', {
     href: location.href,
     hash: location.hash,
-    help: typeof window !== 'undefined' ? window.QURAN_DEBUG_HELP : '',
+    help: QURAN_DEBUG_HELP,
   });
 }
 
@@ -104,8 +104,6 @@ async function loadRef() {
   return refData;
 }
 
-void loadRef().catch(() => {});
-
 async function loadPageMap() {
   if (pageMapData) return pageMapData;
   const r = await fetch(PAGE_MAP_PATH);
@@ -116,8 +114,6 @@ async function loadPageMap() {
   }
   return pageMapData;
 }
-
-void loadPageMap().catch(() => {});
 
 function verseText(surah, verse) {
   const arr = refData[String(surah)];
@@ -216,7 +212,6 @@ function wirePageModeSettings() {
       'search.html',
       'early-theme.js',
       'reader.js',
-      'ai-chat.js',
       'surah-grid.js',
       'quran-debug.js',
       'surah_start_page.js',

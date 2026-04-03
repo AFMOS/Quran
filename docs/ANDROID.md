@@ -7,6 +7,4 @@
 
 **minSdk:** 22 (Android 5.1) — set in `android/variables.gradle`.
 
-**AI chat:** Uses `https://quranf.netlify.app/.netlify/functions/gemini` inside the app (localhost would not work).
-
 If `npm install` fails on a cloud-sync path, run it from a short path like `C:\dev\Quran` or copy `node_modules` from a machine where install worked.

@@ -16,10 +16,9 @@ android/local.properties
 # Vite (generated)
 dist
 
-# Secrets (set GEMINI_API_KEY in Netlify / local env)
+# Local env (optional)
 .env
 .env.*
-!.env.example
 
 # OS
 .DS_Store

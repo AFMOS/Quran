@@ -1,7 +1,7 @@
 var CACHE = 'quran-v27';
 var base = self.location.origin + self.location.pathname.replace(/\/[^/]*$/, '/');
 var precache = [
-  'index.html', 'search.html', 'early-theme.js', 'reader.js', 'ai-chat.js', 'surah-grid.js', 'surah_start_page.js',
+  'index.html', 'search.html', 'early-theme.js', 'reader.js', 'surah-grid.js', 'surah_start_page.js',
   'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png'
 ];
 for (var i = 1; i <= 114; i++) precache.push('ch_' + String(i).padStart(3, '0') + '.html');
