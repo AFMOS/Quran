@@ -1,4 +1,6 @@
 import './styles.css';
+import { App as CapApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { isQuranDebug, quranDebug, quranDebugDom, QURAN_DEBUG_HELP } from './quran-debug.js';
 import { SURAH_NAMES_AR } from './surah-names.js';
 
@@ -356,10 +358,26 @@ function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
   flipEl.addEventListener('touchcancel', endGesture, { passive: true });
 }
 
+function pageModeHash(n) {
+  return '#/page/' + n;
+}
+
+function isPageModeUrl() {
+  return /^#\/page\/\d+$/.test(location.hash);
+}
+
+/** Next/prev page: replace history so Android/browser Back exits reader (e.g. to index), not previous mushaf page. */
 function goPage(n) {
   if (n < 1) n = 1;
   if (n > 604) n = 604;
-  location.hash = '#/page/' + n;
+  const hash = pageModeHash(n);
+  const url = `${location.pathname}${location.search}${hash}`;
+  if (isPageModeUrl()) {
+    history.replaceState(null, '', url);
+    renderPageView(n);
+  } else {
+    location.hash = hash;
+  }
 }
 
 function renderPageView(pageNum) {
@@ -542,3 +560,13 @@ window.addEventListener('keydown', onPageKeydown, true);
 
 window.addEventListener('hashchange', route);
 route();
+
+if (Capacitor.isNativePlatform()) {
+  void CapApp.addListener('backButton', () => {
+    if (isPageModeUrl()) {
+      location.replace(legacyIndexUrl());
+      return;
+    }
+    window.history.back();
+  });
+}
