@@ -301,10 +301,10 @@ function wirePageModeSettings() {
   }
 }
 
-/** Horizontal finger-following drag; rubber-band at first/last page; navigate or spring back on release.
- *  Peer layers show next/prev in the gap (RTL-style: next enters from the right, prev from the left).
+/** Horizontal finger-following drag — whole page sheet moves with the finger (original flip feel).
+ *  Rubber-band at first/last page; navigate or spring back on release.
  *  onSwipeLeft = finger moved left (negative dx) → previous page; onSwipeRight → next page. */
-function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeLeft, onSwipeRight) {
+function bindPageSwipe(flipEl, pageNum, onSwipeLeft, onSwipeRight) {
   const THRESHOLD = 72;
   const RUBBER = 0.28;
   const MAX_PULL = 48;
@@ -314,32 +314,8 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
   let panning = false;
   let decided = false;
 
-  function widthFlip() {
-    return flipEl.clientWidth || 0;
-  }
-
-  /** x = finger delta: right (positive) → next page peeks from the right; left (negative) → prev from the left. */
   function applyTx(x) {
-    mainEl.style.transform = x ? `translateX(${-x}px)` : '';
-    const W = widthFlip();
-    if (peerNextEl) {
-      if (x > 1 && pageNum < 604) {
-        peerNextEl.style.display = 'block';
-        peerNextEl.style.left = `${W - x}px`;
-      } else {
-        peerNextEl.style.display = 'none';
-        peerNextEl.style.left = '';
-      }
-    }
-    if (peerPrevEl) {
-      if (x < -1 && pageNum > 1) {
-        peerPrevEl.style.display = 'block';
-        peerPrevEl.style.left = `${x}px`;
-      } else {
-        peerPrevEl.style.display = 'none';
-        peerPrevEl.style.left = '';
-      }
-    }
+    flipEl.style.transform = x ? `translateX(${x}px)` : '';
   }
 
   flipEl.addEventListener(
@@ -351,7 +327,7 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       lastX = 0;
       panning = false;
       decided = false;
-      mainEl.style.transition = 'none';
+      flipEl.style.transition = 'none';
     },
     { passive: true, capture: true }
   );
@@ -374,10 +350,10 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       let tx = dx;
       const atFirst = pageNum <= 1;
       const atLast = pageNum >= 604;
-      if (atFirst && tx < 0) {
-        tx = Math.max(-MAX_PULL, tx * RUBBER);
-      } else if (atLast && tx > 0) {
+      if (atFirst && tx > 0) {
         tx = Math.min(MAX_PULL, tx * RUBBER);
+      } else if (atLast && tx < 0) {
+        tx = Math.max(-MAX_PULL, tx * RUBBER);
       }
       lastX = tx;
       applyTx(tx);
@@ -388,7 +364,7 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
   function endGesture() {
     if (!decided || !panning) {
       applyTx(0);
-      mainEl.style.transition = '';
+      flipEl.style.transition = '';
       return;
     }
     if (lastX <= -THRESHOLD && pageNum > 1) {
@@ -399,17 +375,17 @@ function bindPageSwipe(flipEl, mainEl, peerPrevEl, peerNextEl, pageNum, onSwipeL
       onSwipeRight();
       return;
     }
-    mainEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
+    flipEl.style.transition = 'transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)';
     lastX = 0;
     applyTx(0);
     const done = () => {
-      mainEl.removeEventListener('transitionend', done);
+      flipEl.removeEventListener('transitionend', done);
       clearTimeout(fallback);
-      mainEl.style.transition = '';
+      flipEl.style.transition = '';
       applyTx(0);
     };
     const fallback = setTimeout(done, 320);
-    mainEl.addEventListener('transitionend', done);
+    flipEl.addEventListener('transitionend', done);
   }
 
   flipEl.addEventListener('touchend', endGesture, { passive: true, capture: true });
@@ -481,8 +457,6 @@ function renderPageView(pageNum) {
         </div>
       </div>
       <div class="qc-page-flip" id="qc-page-flip">
-        <div class="qc-page-peer qc-page-peer-next" id="qc-peer-next" aria-hidden="true"></div>
-        <div class="qc-page-peer qc-page-peer-prev" id="qc-peer-prev" aria-hidden="true"></div>
         <div class="qc-wrap qc-wrap-pending" align="center" id="qc-main"></div>
       </div>
     </div>
@@ -524,21 +498,8 @@ function renderPageView(pageNum) {
       mainEl.classList.remove('qc-wrap-pending');
       mainEl.innerHTML = buildPageMainInnerHtml(pageNum);
 
-      const peerNext = document.getElementById('qc-peer-next');
-      const peerPrev = document.getElementById('qc-peer-prev');
-      if (peerNext) {
-        peerNext.innerHTML = pageNum < 604 ? buildPageMainInnerHtml(pageNum + 1) : '';
-        peerNext.style.display = 'none';
-        peerNext.style.left = '';
-      }
-      if (peerPrev) {
-        peerPrev.innerHTML = pageNum > 1 ? buildPageMainInnerHtml(pageNum - 1) : '';
-        peerPrev.style.display = 'none';
-        peerPrev.style.left = '';
-      }
-
       const flipEl = document.getElementById('qc-page-flip');
-      bindPageSwipe(flipEl, mainEl, peerPrev, peerNext, pageNum, prev, next);
+      bindPageSwipe(flipEl, pageNum, prev, next);
       const firstLi = mainEl.querySelector('.qc-li');
       if (isQuranDebug()) {
         quranDebug('spa.pageMode.layout', {

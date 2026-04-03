@@ -347,41 +347,18 @@ body.reader-night .qc-cache-track {
   min-height: calc(100dvh - 52px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  /* pan-y alone can make horizontal drags flaky off the text block */
   touch-action: pan-x pan-y;
-}
-
-/* Pre-rendered next/prev page, revealed in the gap while swiping */
-.qc-page-peer {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  box-sizing: border-box;
-  z-index: 0;
-  min-height: 100%;
-  pointer-events: none;
-}
-body.reader-sepia.qc-page-mode .qc-page-peer {
-  background: #f5f0e6;
-}
-body.reader-night.qc-page-mode .qc-page-peer {
-  background: #1a1a2e;
+  will-change: transform;
 }
 
 .qc-wrap {
   position: relative;
-  z-index: 1;
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
   user-select: text;
-  will-change: transform;
 }
 body.reader-sepia.qc-page-mode .qc-wrap {
   background: #f5f0e6;
