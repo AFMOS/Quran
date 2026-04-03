@@ -10,7 +10,8 @@
     "cap:sync": "npx cap sync",
     "cap:open": "npx cap open android",
     "cap:assets": "npx @capacitor/assets generate --iconBackgroundColor #0d7377 --iconBackgroundColorDark #0d7377",
-    "generate:page-map": "node scripts/generate-page-map.mjs"
+    "generate:page-map": "node scripts/generate-page-map.mjs",
+    "sync:quran-text": "python scripts/build_search.py"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.0",

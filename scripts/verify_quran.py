@@ -88,8 +88,8 @@ def main():
     report_path = os.path.join(ROOT, "scripts", "quran_verification_report.txt")
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("QURAN VERIFICATION REPORT\n")
-        f.write("Reference: Tanzil/quran-json (Uthmani script)\n")
-        f.write("Ours: holyquran.net (Simple script)\n\n")
+        f.write("Reference: public/reference_quran.json (from build_search.py)\n")
+        f.write("Ours: search_data.json (same HTML source as scrolling)\n\n")
         f.write(f"Verse count: {len(ref)} reference, {len(ours)} ours - MATCH\n")
         f.write(f"Missing in ours: {len(missing)}\n")
         f.write(f"Extra in ours: {len(extra)}\n")

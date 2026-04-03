@@ -1,4 +1,4 @@
-/** Arabic surah names (1–114), Medina mushaf labels — for page header only; text from reference_quran.json */
+/** Arabic surah names (1–114), Medina mushaf labels — for page header only (verse text comes from same HTML as scrolling via reference_quran.json). */
 export const SURAH_NAMES_AR = [
   'الفاتحة',
   'البقرة',

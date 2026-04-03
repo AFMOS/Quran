@@ -1,9 +1,17 @@
+"""
+Extract verse text from ch_XXX.html (scrolling source) into:
+  - public/quran_chapters/search_data.json  (flat list for search)
+  - public/reference_quran.json             (nested by surah; page mode uses this)
+
+Run after editing chapter HTML so page mode and scrolling stay identical.
+"""
 import os
 import re
 import json
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DIR = os.path.join(ROOT, "public", "quran_chapters")
+PUBLIC = os.path.join(ROOT, "public")
 
 # Extract verse text from <li><p><font>...</font></p></li>
 VERSE_PATTERN = re.compile(
@@ -36,4 +44,17 @@ for ch in range(1, 115):
 with open(os.path.join(DIR, "search_data.json"), "w", encoding="utf-8") as f:
     json.dump(data, f, ensure_ascii=False)
 
-print(f"Extracted {len(data)} verses")
+by_surah = {}
+for item in data:
+    s = item["s"]
+    key = str(s)
+    if key not in by_surah:
+        by_surah[key] = []
+    by_surah[key].append(
+        {"chapter": s, "verse": item["v"], "text": item["t"]}
+    )
+
+with open(os.path.join(PUBLIC, "reference_quran.json"), "w", encoding="utf-8") as f:
+    json.dump(by_surah, f, ensure_ascii=False)
+
+print(f"Extracted {len(data)} verses -> search_data.json + reference_quran.json")
