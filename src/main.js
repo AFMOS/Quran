@@ -19,7 +19,14 @@ let pageMapData = null;
 let pageSettingsDocClick = null;
 
 function defaultReaderSize() {
-  return typeof window !== 'undefined' && window.Capacitor ? 'm' : 'l';
+  if (typeof window === 'undefined') return 'm';
+  if (window.Capacitor) return 'm';
+  try {
+    if (window.matchMedia('(max-width: 1024px)').matches) return 'm';
+  } catch {
+    /* ignore */
+  }
+  return 'l';
 }
 
 function getReaderOpts() {

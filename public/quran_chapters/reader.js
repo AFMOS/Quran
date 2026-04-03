@@ -16,9 +16,16 @@
       'Console reports: ?debug=1 in URL OR localStorage.setItem("quran_debug","1"); location.reload()';
   }
   var KEY = 'quran_reader';
+  function defaultReaderSize() {
+    if (typeof window.Capacitor !== 'undefined') return 'm';
+    try {
+      if (window.matchMedia('(max-width: 1024px)').matches) return 'm';
+    } catch (e) {}
+    return 'l';
+  }
   var def = {
     theme: 'sepia',
-    size: typeof window.Capacitor !== 'undefined' ? 'm' : 'l',
+    size: defaultReaderSize(),
     dyslexia: true
   };
   function surahMatch(){
